@@ -84,7 +84,7 @@ class Board:
         elif len(selected_piece) == 0:
             return
         else:
-            # selected > 1..... should not run
+            # selected > 1..... (SHOULD NOT RUN)
             print("ERROR: MORE THAN ONE SELECTED. DEBUG NECESSARY")
         if selected_piece.can_move_to_square(self, col, row):
             selected_piece.move(self, col, row)
