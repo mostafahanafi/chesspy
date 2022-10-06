@@ -49,9 +49,9 @@ class Pawn(Piece):
     def __init__(self, color, col, row):
         self.color = color
         if self.color == BLACK:
-            self.img = "v3/data/Bpawn.png"
+            self.img = "data/Bpawn.png"
         else:
-            self.img = "v3/data/Wpawn.png"
+            self.img = "data/Wpawn.png"
         self.col = col
         self.row = row
         self.selected = False
@@ -60,9 +60,9 @@ class Rook(Piece):
     def __init__(self, color, col, row):
         self.color = color
         if self.color == BLACK:
-            self.img = "v3/data/Brook.png"
+            self.img = "data/Brook.png"
         else:
-            self.img = "v3/data/Wrook.png"
+            self.img = "data/Wrook.png"
         self.col = col
         self.row = row
         self.selected = False
@@ -88,9 +88,9 @@ class Knight(Piece):
     def __init__(self, color, col, row):
         self.color = color
         if self.color == BLACK:
-            self.img = "v3/data/Bknight.png"
+            self.img = "data/Bknight.png"
         else:
-            self.img = "v3/data/Wknight.png"
+            self.img = "data/Wknight.png"
         self.col = col
         self.row = row
         self.selected = False
@@ -99,9 +99,9 @@ class Bishop(Piece):
     def __init__(self, color, col, row):
         self.color = color
         if self.color == BLACK:
-            self.img = "v3/data/Bbishop.png"
+            self.img = "data/Bbishop.png"
         else:
-            self.img = "v3/data/Wbishop.png"
+            self.img = "data/Wbishop.png"
         self.col = col
         self.row = row
         self.selected = False
@@ -110,9 +110,9 @@ class Queen(Piece):
     def __init__(self, color, col, row):
         self.color = color
         if self.color == BLACK:
-            self.img = "v3/data/Bqueen.png"
+            self.img = "data/Bqueen.png"
         else:
-            self.img = "v3/data/Wqueen.png"
+            self.img = "data/Wqueen.png"
         self.col = col
         self.row = row
         self.selected = False
@@ -121,9 +121,9 @@ class King(Piece):
     def __init__(self, color, col, row):
         self.color = color
         if self.color == BLACK:
-            self.img = "v3/data/Bking.png"
+            self.img = "data/Bking.png"
         else:
-            self.img = "v3/data/Wking.png"
+            self.img = "data/Wking.png"
         self.col = col
         self.row = row
         self.selected = False
