@@ -49,6 +49,7 @@ class Board:
         return self.board[row][col]
 
     def draw_board(self, screen):
+        # draw chessboard
         for row in range(8):
             for col in range(8):
                 if (row+col)%2 == 0:
@@ -57,15 +58,13 @@ class Board:
                     c = [184,139,74]
                 rect = [col*self.spacing, row*self.spacing, self.spacing, self.spacing]
                 pygame.draw.rect(screen, c, rect)
+        # display pieces, with selected piece on top
         selected_piece = None
-        for row in range(8):
-            for col in range(8):
-                if self.has_piece(col, row):
-                    piece = self.get_piece(col, row)
-                    if piece.selected:
-                        selected_piece = piece
-                    else:
-                        piece.display(self, screen)
+        for piece in self.white_pieces + self.black_pieces:
+            if not piece.selected:
+                piece.display(self, screen)
+            else:
+                selected_piece = piece
         if selected_piece is not None:
             selected_piece.display(self, screen)
     
