@@ -66,8 +66,17 @@ class Board:
             else:
                 selected_piece = piece
         if selected_piece is not None:
+            # if selected piece can move, highlight squares
+            # TO DO - return array of possible moves as opposed to checking each square
+            for row in range(8):
+                for col in range(8):
+                    if selected_piece.can_move_to_square(self, col, row):
+                        pygame.draw.circle(screen,
+                                        (100,100,100), 
+                                        [(col+.5)*self.spacing, (row+.5)*self.spacing],
+                                        self.spacing/4)
             selected_piece.display(self, screen)
-    
+
     def mouse_clicked(self, pos):
         col, row = int(pos[0]/self.spacing), int(pos[1]/self.spacing)
         if self.has_piece(col, row):
