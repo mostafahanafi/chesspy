@@ -68,6 +68,23 @@ class Pawn(Piece):
         self.col = col
         self.row = row
         self.selected = False
+    
+    def can_move_to_square(self, board, col, row):
+        if not super().can_move_to_square(board, col, row):
+            return False
+        # cannot move to square with piece regardless of color
+        if board.has_piece(col, row):
+            return False
+        # set step/direction and home row for different colors
+        step = -1 if self.color == WHITE else 1
+        home_row = 6 if self.color == WHITE else 1
+        # basic movement (1 step, 2 if on home row)
+        if col == self.col:
+            if row == self.row + step:
+                return True
+            elif self.row == home_row and row == self.row + 2*step and not board.has_piece(self.col,self.row+step):
+                return True
+        return False
 
 class Rook(Piece):
     def __init__(self, color, col, row):
