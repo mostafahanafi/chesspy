@@ -49,6 +49,12 @@ class Board:
         return self.board[row][col]
 
     def draw_board(self, screen):
+        # find selected piece
+        selected_piece = None
+        for piece in self.black_pieces + self.white_pieces:
+            if piece.selected:
+                selected_piece = piece
+                break
         # draw chessboard
         for row in range(8):
             for col in range(8):
@@ -58,23 +64,26 @@ class Board:
                     c = [184,139,74]
                 rect = [col*self.spacing, row*self.spacing, self.spacing, self.spacing]
                 pygame.draw.rect(screen, c, rect)
-        # display pieces, with selected piece on top
-        selected_piece = None
-        for piece in self.white_pieces + self.black_pieces:
-            if not piece.selected:
-                piece.display(self, screen)
-            else:
-                selected_piece = piece
-        if selected_piece is not None:
-            # if selected piece can move, highlight squares
-            # TO DO - return array of possible moves as opposed to checking each square
-            for row in range(8):
-                for col in range(8):
-                    if selected_piece.can_move_to_square(self, col, row):
+                
+                # if selected piece can move, highlight squares
+                if selected_piece is not None and selected_piece.can_move_to_square(self, col, row):
+                    if self.has_piece(col,row):
                         pygame.draw.circle(screen,
-                                        (100,100,100), 
-                                        [(col+.5)*self.spacing, (row+.5)*self.spacing],
-                                        self.spacing/4)
+                                    (100,100,100), 
+                                    [(col+.5)*self.spacing, (row+.5)*self.spacing],
+                                    self.spacing/2,
+                                    width=int(self.spacing/20))
+                    else:
+                        pygame.draw.circle(screen,
+                                    (100,100,100), 
+                                    [(col+.5)*self.spacing, (row+.5)*self.spacing],
+                                    self.spacing/8)
+                # display pieces
+                piece = self.board[row][col]
+                if piece is not None:
+                    piece.display(self, screen)
+        # display selected piece on top
+        if selected_piece is not None:
             selected_piece.display(self, screen)
 
     def mouse_clicked(self, pos):
