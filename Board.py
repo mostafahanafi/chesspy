@@ -59,14 +59,14 @@ class Board:
         for row in range(8):
             for col in range(8):
                 if (row+col)%2 == 0:
-                    c = [227,193,111]
+                    c = [238,237,210]
                 else:
-                    c = [184,139,74]
+                    c = [117,150,86]
                 rect = [col*self.spacing, row*self.spacing, self.spacing, self.spacing]
                 pygame.draw.rect(screen, c, rect)
-                
-                # if selected piece can move, highlight squares
+                # highlight square of selected piece
                 if selected_piece is not None and selected_piece.can_move_to_square(self, col, row):
+                    # if selected piece can move, highlight possible moves
                     if self.has_piece(col,row):
                         pygame.draw.circle(screen,
                                     (100,100,100), 
@@ -84,6 +84,14 @@ class Board:
                     piece.display(self, screen)
         # display selected piece on top
         if selected_piece is not None:
+            row = selected_piece.row
+            col = selected_piece.col
+            if (row+col)%2 == 0:
+                    c = [247,246,134]
+            else:
+                c = [185,202,65]
+            rect = [col*self.spacing, row*self.spacing, self.spacing, self.spacing]
+            pygame.draw.rect(screen, c, rect)
             selected_piece.display(self, screen)
 
     def mouse_clicked(self, pos):
