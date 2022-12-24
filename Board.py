@@ -87,7 +87,7 @@ class Board:
             row = selected_piece.row
             col = selected_piece.col
             if (row+col)%2 == 0:
-                    c = [247,246,134]
+                c = [247,246,134]
             else:
                 c = [185,202,65]
             rect = [col*self.spacing, row*self.spacing, self.spacing, self.spacing]
