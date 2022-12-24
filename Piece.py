@@ -69,6 +69,17 @@ class Pawn(Piece):
         self.row = row
         self.selected = False
     
+    def move(self, board, col, row):
+        # if you've reached end of board, auto promote to queen
+        end_of_board = 0 if self.color == WHITE else 7
+        if row == end_of_board:
+            queen = Queen(self.color, self.col, self.row)
+            self.delete(board)
+            board.add_piece(queen)
+            return queen.move(board, col, row)
+        else:
+            return super().move(board, col, row)
+
     def can_move_to_square(self, board, col, row):
         if not super().can_move_to_square(board, col, row):
             return False

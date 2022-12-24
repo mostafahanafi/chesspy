@@ -15,7 +15,10 @@ class Board:
     
     def create_piece(self, Piece_class, color, col, row):
         piece = Piece_class(color, col, row)
-        if color:
+        self.add_piece(piece)
+    
+    def add_piece(self, piece):
+        if piece.color:
             self.black_pieces.append(piece)
         else:
             self.white_pieces.append(piece)

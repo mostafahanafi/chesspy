@@ -4,7 +4,7 @@ from Piece import *
 from Board import Board
 pygame.init()
 
-SIZE = 600
+SIZE = 800
 screen = pygame.display.set_mode([SIZE,SIZE])
 
 board = Board(size=SIZE)
