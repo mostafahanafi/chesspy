@@ -129,6 +129,15 @@ class Knight(Piece):
         self.col = col
         self.row = row
         self.selected = False
+    
+    def can_move_to_square(self, board, col, row):
+        if not super().can_move_to_square(board, col, row):
+            return False
+        # test if square is one of 8 possible squares a knight can jump to manually
+        return ((row == self.row + 2 and (col == self.col + 1 or col == self.col - 1)) or
+            (row == self.row - 2 and (col == self.col + 1 or col == self.col - 1)) or
+            (col == self.col + 2 and (row == self.row + 1 or row == self.row - 1)) or
+            (col == self.col - 2 and (row == self.row + 1 or row == self.row - 1)))
 
 class Bishop(Piece):
     def __init__(self, color, col, row):
@@ -140,6 +149,28 @@ class Bishop(Piece):
         self.col = col
         self.row = row
         self.selected = False
+    
+    def can_move_to_square(self, board, col, row):
+        if not super().can_move_to_square(board, col, row):
+            return False
+        # make sure it is a diagonal move i.e. movement in col = movement in row
+        col_dist = abs(col - self.col)
+        row_dist = abs(row - self.row)
+        if row_dist != col_dist:
+            return False
+
+        col_step = 1 if col > self.col else -1
+        row_step = 1 if row > self.row else -1
+        for i in range(1, row_dist): 
+            c = self.col + i*col_step
+            r = self.row + i*row_step
+            if board.has_piece(c, r):
+                    return False
+        
+        return True
+
+
+
 
 class Queen(Piece):
     def __init__(self, color, col, row):
@@ -151,6 +182,14 @@ class Queen(Piece):
         self.col = col
         self.row = row
         self.selected = False
+    
+    def can_move_to_square(self, board, col, row):
+        if not super().can_move_to_square(board, col, row):
+            return False
+        # if a bishop or a rook can move there, the queen can move there
+        B = Bishop(self.color, self.col, self.row)
+        R = Rook(self.color, self.col, self.row)
+        return B.can_move_to_square(board, col, row) or R.can_move_to_square(board, col, row)
 
 class King(Piece):
     def __init__(self, color, col, row):
@@ -162,3 +201,11 @@ class King(Piece):
         self.col = col
         self.row = row
         self.selected = False
+    
+    def can_move_to_square(self, board, col, row):
+        if not super().can_move_to_square(board, col, row):
+            return False
+        # 1 step in any direction
+        if abs(col-self.col) == 1 and abs(row-self.row) == 1:
+            return True
+        # TO-DO: castling
