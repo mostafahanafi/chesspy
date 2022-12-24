@@ -99,7 +99,12 @@ class Rook(Piece):
         self.col = col
         self.row = row
         self.selected = False
+        self.has_moved = False
     
+    def move(self, board, col, row):
+        self.has_moved = True
+        return super().move(board, col, row)
+
     def can_move_to_square(self, board, col, row):
         if not super().can_move_to_square(board, col, row):
             return False
@@ -169,9 +174,6 @@ class Bishop(Piece):
         
         return True
 
-
-
-
 class Queen(Piece):
     def __init__(self, color, col, row):
         self.color = color
@@ -201,11 +203,43 @@ class King(Piece):
         self.col = col
         self.row = row
         self.selected = False
+        self.has_moved = False
     
+    def move(self, board, col, row):
+        self.has_moved = True
+        # if castling, also move the rook
+        if col - self.col == 2:
+            k_rook = board.get_piece(7, row)
+            k_rook.move(board, col-1, row)
+        elif self.col - col == 2:
+            q_rook = board.get_piece(0, row)
+            q_rook.move(board, col+1, row)
+        return super().move(board, col, row)
+
     def can_move_to_square(self, board, col, row):
         if not super().can_move_to_square(board, col, row):
             return False
         # 1 step in any direction
-        if abs(col-self.col) == 1 and abs(row-self.row) == 1:
+        if abs(col-self.col) <= 1 and abs(row-self.row) <= 1:
             return True
         # TO-DO: castling
+        if not self.has_moved and self.row == row:
+            # kingside castling
+            if col == self.col + 2:
+                k_rook = board.get_piece(7, row)
+                if k_rook.has_moved:
+                    return False
+                if board.has_piece(self.col+1, row) or board.has_piece(self.col+2, row):
+                    return False
+                else:
+                    return True
+            # queenside castling
+            elif col == self.col - 2:
+                q_rook = board.get_piece(0, row)
+                if q_rook.has_moved:
+                    return False
+                if board.has_piece(self.col-1, row) or board.has_piece(self.col-2, row):
+                    return False
+                else:
+                    return True
+        return False
