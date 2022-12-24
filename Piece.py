@@ -68,6 +68,7 @@ class Pawn(Piece):
         self.col = col
         self.row = row
         self.selected = False
+        self.en_passant = False
     
     def move(self, board, col, row):
         # if you've reached end of board, auto promote to queen
@@ -78,6 +79,13 @@ class Pawn(Piece):
             board.add_piece(queen)
             return queen.move(board, col, row)
         else:
+            self.en_passant = abs(row - self.row) == 2
+            # if taking pawn en passant, make sure to capture it
+            if (col == self.col+1 or col == self.col - 1):
+                if board.has_piece(col, self.row):
+                    piece = board.get_piece(col, self.row)
+                    if isinstance(piece, Pawn) and piece.en_passant:
+                        piece.delete(board)
             return super().move(board, col, row)
 
     def can_move_to_square(self, board, col, row):
@@ -93,11 +101,16 @@ class Pawn(Piece):
             elif self.row == home_row and row == self.row + 2*step and not board.has_piece(self.col,self.row+step):
                 return True
         # capturing
-        elif (col == self.col+1 or col == self.col-1) and row == self.row + step and board.has_piece(col, row):
-            piece = board.get_piece(col, row)
-            return self.color != piece.color
-        # TO DO - en passant?
-        # TO DO - don't forget pawn promotion
+        elif (col == self.col+1 or col == self.col-1) and row == self.row + step:
+            if board.has_piece(col, row):
+                piece = board.get_piece(col, row)
+                return self.color != piece.color
+            # en passant
+            elif board.has_piece(col, self.row):
+                piece = board.get_piece(col, self.row)
+                if isinstance(piece, Pawn) and piece.en_passant:
+                    return True
+
         return False
 
 class Rook(Piece):
