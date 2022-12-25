@@ -38,7 +38,7 @@ class AI:
         score = self.score_board(test_board)
         return score
 
-    def minimax(self, board, depth):
+    def minimax(self, board, depth, alpha=float("-inf"), beta=float("inf")):
         if depth == 0 or board.get_possible_moves() == []:
             return self.score_board(board)
         
@@ -49,9 +49,12 @@ class AI:
                 piece = test_board.get_piece(move[0].col, move[0].row)
                 piece.move(test_board, move[1], move[2])
                 test_board.change_turn()
-                score = self.minimax(test_board, depth-1)
+                score = self.minimax(test_board, depth-1, alpha, beta)
                 if score > best_score:
                     best_score = score
+                alpha = max(alpha, score)
+                if beta <= alpha:
+                    break
             return best_score
         
         else:
@@ -61,9 +64,12 @@ class AI:
                 piece = test_board.get_piece(move[0].col, move[0].row)
                 piece.move(test_board, move[1], move[2])
                 test_board.change_turn()
-                score = self.minimax(test_board, depth-1)
+                score = self.minimax(test_board, depth-1, alpha, beta)
                 if score < best_score:
                     best_score = score
+                beta = min(beta, score)
+                if beta <= alpha:
+                    break
             return best_score
 
     def find_best_move(self, board, depth):

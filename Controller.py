@@ -48,7 +48,7 @@ class Controller:
         screen = pygame.display.set_mode([self.board.size,self.board.size])
         while True:
             if self.board.white_AI:
-                self.ai_turn(WHITE, screen, depth=1)
+                self.ai_turn(WHITE, screen, depth=3)
             else:
                 self.player_turn(screen)
             if self.board.black_AI:
