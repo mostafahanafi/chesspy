@@ -3,10 +3,10 @@ from Piece import *
 import copy
 
 class AI:
-    def __init__(self) -> None:
-        pass
+    def __init__(self, color) -> None:
+        self.color = color
 
-    def score(self, board: Board):
+    def score_board(self, board: Board):
         total = 0
         scores = {
             "King": 0, # will always be in the array
@@ -29,14 +29,23 @@ class AI:
         
         return total
     
+    def score_move(self, board, move):
+        piece, col, row = move
+        test_board = copy.deepcopy(board)
+        test_piece = test_board.get_piece(piece.col, piece.row)
+        test_piece.move(test_board, col, row)
+        score = self.score_board(test_board)
+        return score
+
     def choose_best_move(self, board: Board):
         moves = board.get_possible_moves()
-        best_move = (None, 0)
+        best_move = (moves[0], self.score_move(board, moves[0]))
         for move in moves:
-            test_board = copy.deepcopy(board)
-            piece = test_board.get_piece(move[0].col, move[0].row)
-            piece.move(test_board, move[1], move[2])
-            score = self.score(test_board)
-            if score > best_move[1]:
-                best_move = (move, score)
+            score = self.score_move(board, move)
+            if self.color == WHITE:
+                if score > best_move[1]:
+                    best_move = (move, score)
+            else:
+                if score < best_move[1]:
+                    best_move = (move, score)
         return best_move

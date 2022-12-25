@@ -11,6 +11,8 @@ class Board:
         self.black_pieces = []
         self.size = size
         self.spacing = self.size/8
+        self.white_AI = False
+        self.black_AI = True
         self.turn = WHITE
     
     def create_piece(self, Piece_class, color, col, row):
@@ -117,11 +119,24 @@ class Board:
         if len(selected_piece) == 1:
             selected_piece = selected_piece[0]
         elif len(selected_piece) == 0:
-            return
+            return False
         else:
             # selected > 1..... (SHOULD NOT RUN)
             print("ERROR: MORE THAN ONE SELECTED. DEBUG NECESSARY")
         if selected_piece.can_move_to_square(self, col, row):
             selected_piece.move(self, col, row)
             self.turn = WHITE if self.turn == BLACK else BLACK
+            selected_piece.selected = False
+            return True
         selected_piece.selected = False
+        return False
+    
+    def get_possible_moves(self):
+        pieces = self.white_pieces if self.turn == WHITE else self.black_pieces
+        moves = []
+        for piece in pieces:
+            for c in range(8):
+                for r in range(8):
+                    if piece.can_move_to_square(self, c, r):
+                        moves.append( (piece,c,r) )
+        return moves
