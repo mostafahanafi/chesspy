@@ -84,6 +84,10 @@ class Board:
                 # display pieces
                 piece = self.board[row][col]
                 if piece is not None:
+                    if isinstance(piece, King) and piece.is_in_check(self):
+                        c = [255,170,170]
+                        rect = [col*self.spacing, row*self.spacing, self.spacing, self.spacing]
+                        pygame.draw.rect(screen, c, rect)
                     piece.display(self, screen)
         # display selected piece on top
         if selected_piece is not None:

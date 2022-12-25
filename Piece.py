@@ -1,5 +1,6 @@
 # Color: 0 = White, 1 = Black
 import pygame
+import copy
 
 WHITE = 0
 BLACK = 1
@@ -57,6 +58,18 @@ class Piece:
                 return False
         # otherwise, return True
         return True
+    
+    def king_not_in_check(self, board, col, row):
+        # if king is (still) in check after the move, return False
+        next_board = copy.deepcopy(board)
+        next_pieces = next_board.white_pieces if self.color == WHITE else next_board.black_pieces
+        next_self = next_board.get_piece(self.col, self.row)
+        next_self.move(next_board, col, row)
+        for piece in next_pieces:
+            if isinstance(piece, King) and piece.is_in_check(next_board):
+                return False
+        return True
+
 
 class Pawn(Piece):
     def __init__(self, color, col, row):
@@ -97,9 +110,9 @@ class Pawn(Piece):
         # basic movement (1 step, 2 if on home row)
         if col == self.col and not board.has_piece(col, row):
             if row == self.row + step:
-                return True
+                return super().king_not_in_check(board, col, row)
             elif self.row == home_row and row == self.row + 2*step and not board.has_piece(self.col,self.row+step):
-                return True
+                return super().king_not_in_check(board, col, row)
         # capturing
         elif (col == self.col+1 or col == self.col-1) and row == self.row + step:
             if board.has_piece(col, row):
@@ -109,9 +122,10 @@ class Pawn(Piece):
             elif board.has_piece(col, self.row):
                 piece = board.get_piece(col, self.row)
                 if isinstance(piece, Pawn) and piece.en_passant:
-                    return True
+                    return super().king_not_in_check(board, col, row)
 
         return False
+
 
 class Rook(Piece):
     def __init__(self, color, col, row):
@@ -146,7 +160,8 @@ class Rook(Piece):
             for n in range(self.col+step, col, step):
                 if board.has_piece(n, row):
                     return False
-        return True
+        return super().king_not_in_check(board, col, row)
+
 
 class Knight(Piece):
     def __init__(self, color, col, row):
@@ -163,10 +178,13 @@ class Knight(Piece):
         if not super().can_move_to_square(board, col, row):
             return False
         # test if square is one of 8 possible squares a knight can jump to manually
-        return ((row == self.row + 2 and (col == self.col + 1 or col == self.col - 1)) or
+        if ((row == self.row + 2 and (col == self.col + 1 or col == self.col - 1)) or
             (row == self.row - 2 and (col == self.col + 1 or col == self.col - 1)) or
             (col == self.col + 2 and (row == self.row + 1 or row == self.row - 1)) or
-            (col == self.col - 2 and (row == self.row + 1 or row == self.row - 1)))
+            (col == self.col - 2 and (row == self.row + 1 or row == self.row - 1))):
+            return super().king_not_in_check(board, col, row)
+        return False
+
 
 class Bishop(Piece):
     def __init__(self, color, col, row):
@@ -196,7 +214,8 @@ class Bishop(Piece):
             if board.has_piece(c, r):
                     return False
         
-        return True
+        return super().king_not_in_check(board, col, row)
+
 
 class Queen(Piece):
     def __init__(self, color, col, row):
@@ -215,7 +234,9 @@ class Queen(Piece):
         # if a bishop or a rook can move there, the queen can move there
         B = Bishop(self.color, self.col, self.row)
         R = Rook(self.color, self.col, self.row)
-        return B.can_move_to_square(board, col, row) or R.can_move_to_square(board, col, row)
+        if B.can_move_to_square(board, col, row) or R.can_move_to_square(board, col, row):
+            return super().king_not_in_check(board, col, row)
+
 
 class King(Piece):
     def __init__(self, color, col, row):
@@ -245,7 +266,7 @@ class King(Piece):
             return False
         # 1 step in any direction
         if abs(col-self.col) <= 1 and abs(row-self.row) <= 1:
-            return True
+            return super().king_not_in_check(board, col, row)
         # TO-DO: castling
         if not self.has_moved and self.row == row:
             # kingside castling
@@ -256,7 +277,7 @@ class King(Piece):
                 if board.has_piece(self.col+1, row) or board.has_piece(self.col+2, row):
                     return False
                 else:
-                    return True
+                    return super().king_not_in_check(board, col, row)
             # queenside castling
             elif col == self.col - 2:
                 q_rook = board.get_piece(0, row)
@@ -265,5 +286,12 @@ class King(Piece):
                 if board.has_piece(self.col-1, row) or board.has_piece(self.col-2, row):
                     return False
                 else:
-                    return True
+                    return super().king_not_in_check(board, col, row)
+        return False
+    
+    def is_in_check(self, board):
+        pieces = board.white_pieces if self.color == BLACK else board.black_pieces
+        for piece in pieces:
+            if piece.can_move_to_square(board, self.col, self.row):
+                return True
         return False
