@@ -277,22 +277,24 @@ class King(Piece):
         if not self.has_moved and self.row == row:
             # kingside castling
             if col == self.col + 2:
-                k_rook = board.get_piece(7, row)
-                if k_rook.has_moved:
-                    return False
-                if board.has_piece(self.col+1, row) or board.has_piece(self.col+2, row):
-                    return False
-                else:
-                    return True
+                if board.has_piece(7, row) and isinstance(board.get_piece(7, row), Rook):
+                    k_rook = board.get_piece(7, row)
+                    if k_rook.has_moved:
+                        return False
+                    if board.has_piece(self.col+1, row) or board.has_piece(self.col+2, row):
+                        return False
+                    else:
+                        return True
             # queenside castling
             elif col == self.col - 2:
-                q_rook = board.get_piece(0, row)
-                if q_rook.has_moved:
-                    return False
-                if board.has_piece(self.col-1, row) or board.has_piece(self.col-2, row):
-                    return False
-                else:
-                    return True
+                if board.has_piece(0, row) and isinstance(board.get_piece(0, row), Rook):
+                    q_rook = board.get_piece(0, row)
+                    if q_rook.has_moved:
+                        return False
+                    if board.has_piece(self.col-1, row) or board.has_piece(self.col-2, row):
+                        return False
+                    else:
+                        return True
         return False
     
     def is_in_check(self, board):
