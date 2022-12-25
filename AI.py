@@ -39,38 +39,56 @@ class AI:
         return score
 
     def minimax(self, board, depth):
+        if depth == 0 or board.get_possible_moves() == []:
+            return self.score_board(board)
+        
         if board.turn == WHITE:
-            best_move = (None, float("-inf"))
+            best_score = float("-inf")
             for move in board.get_possible_moves():
-                score = self.minimax_move(board, move, depth)
-                if score > best_move[1]:
-                    best_move = (move, score)
-            return best_move
+                test_board = copy.deepcopy(board)
+                piece = test_board.get_piece(move[0].col, move[0].row)
+                piece.move(test_board, move[1], move[2])
+                test_board.change_turn()
+                score = self.minimax(test_board, depth-1)
+                if score > best_score:
+                    best_score = score
+            return best_score
+        
         else:
-            best_move = (None, float("inf"))
+            best_score = float("inf")
             for move in board.get_possible_moves():
-                score = self.minimax_move(board, move, depth)
-                if score < best_move[1]:
-                    best_move = (move, score)
-            return best_move
+                test_board = copy.deepcopy(board)
+                piece = test_board.get_piece(move[0].col, move[0].row)
+                piece.move(test_board, move[1], move[2])
+                test_board.change_turn()
+                score = self.minimax(test_board, depth-1)
+                if score < best_score:
+                    best_score = score
+            return best_score
 
-    def minimax_move(self, board, move, depth):
-        test_board = copy.deepcopy(board)
-        test_piece = test_board.get_piece(move[0].col, move[0].row)
-        test_piece.move(test_board, move[1], move[2])
-        test_board.change_turn()
-        depth -= 1
-
-        if depth == 0:
-            return self.score_board(test_board)
+    def find_best_move(self, board, depth):
+        moves = []
+        if self.color == WHITE:
+            for move in board.get_possible_moves():
+                test_board = copy.deepcopy(board)
+                piece = test_board.get_piece(move[0].col, move[0].row)
+                piece.move(test_board, move[1], move[2])
+                test_board.change_turn()
+                score = self.minimax(test_board, depth-1)
+                moves.append((move, score))
+            moves.sort(key=lambda x: x[1], reverse=True)
+            return moves[0]
         else:
-            next_moves = test_board.get_possible_moves()
-            if test_board.turn == WHITE:
-                return max(self.minimax_move(test_board, next_move, depth) \
-                    for next_move in next_moves)
-            else:
-                return min(self.minimax_move(test_board, next_move, depth) \
-                    for next_move in next_moves)
+            for move in board.get_possible_moves():
+                test_board = copy.deepcopy(board)
+                piece = test_board.get_piece(move[0].col, move[0].row)
+                piece.move(test_board, move[1], move[2])
+                test_board.change_turn()
+                score = self.minimax(test_board, depth-1)
+                moves.append((move, score))
+            moves.sort(key=lambda x: x[1])
+            return moves[0]
+
 
 class RandomAI(AI):
     def minimax(self, board, depth):

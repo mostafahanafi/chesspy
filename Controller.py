@@ -35,12 +35,11 @@ class Controller:
             AI = self.white_AI
         else:
             AI = self.black_AI
-        
-        best_move = AI.minimax(self.board, depth)
+
+        best_move = AI.find_best_move(self.board, depth)
         piece, col, row = best_move[0]
-        if piece.can_move_to_square(self.board, col, row): # should be true
+        if piece.can_move_to_square(self.board, col, row): # should always be true
             piece.move(self.board, col, row)
-        print(best_move[1]) # score
         self.board.draw_board(screen)
         pygame.display.flip()
         self.change_turn()
@@ -49,7 +48,7 @@ class Controller:
         screen = pygame.display.set_mode([self.board.size,self.board.size])
         while True:
             if self.board.white_AI:
-                self.ai_turn(WHITE, screen, depth=3)
+                self.ai_turn(WHITE, screen, depth=1)
             else:
                 self.player_turn(screen)
             if self.board.black_AI:
