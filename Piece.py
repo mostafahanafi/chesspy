@@ -44,7 +44,7 @@ class Piece:
         screen.blit(img, img_rect)
 
     # TO DO - false if in check, either still in check or puts into check
-    def can_move_to_square(self, board, col, row):
+    def can_see_square(self, board, col, row):
         # if somehow out of bounds, return False
         if row < 0 or row >= 8 or col < 0 or col >= 8:
             return False
@@ -58,6 +58,11 @@ class Piece:
                 return False
         # otherwise, return True
         return True
+    
+    def can_move_to_square(self, board, col, row):
+        if self.can_see_square(board, col, row):
+            return self.king_not_in_check(board, col, row)
+        return False
     
     def king_not_in_check(self, board, col, row):
         # if king is (still) in check after the move, return False
@@ -101,8 +106,8 @@ class Pawn(Piece):
                         piece.delete(board)
             return super().move(board, col, row)
 
-    def can_move_to_square(self, board, col, row):
-        if not super().can_move_to_square(board, col, row):
+    def can_see_square(self, board, col, row):
+        if not super().can_see_square(board, col, row):
             return False
         # set step/direction and home row for different colors
         step = -1 if self.color == WHITE else 1
@@ -110,19 +115,20 @@ class Pawn(Piece):
         # basic movement (1 step, 2 if on home row)
         if col == self.col and not board.has_piece(col, row):
             if row == self.row + step:
-                return super().king_not_in_check(board, col, row)
+                return True
             elif self.row == home_row and row == self.row + 2*step and not board.has_piece(self.col,self.row+step):
-                return super().king_not_in_check(board, col, row)
+                return True
         # capturing
         elif (col == self.col+1 or col == self.col-1) and row == self.row + step:
             if board.has_piece(col, row):
                 piece = board.get_piece(col, row)
-                return self.color != piece.color
+                if self.color != piece.color:
+                    return True
             # en passant
             elif board.has_piece(col, self.row):
                 piece = board.get_piece(col, self.row)
                 if isinstance(piece, Pawn) and piece.en_passant:
-                    return super().king_not_in_check(board, col, row)
+                    return True
 
         return False
 
@@ -143,8 +149,8 @@ class Rook(Piece):
         self.has_moved = True
         return super().move(board, col, row)
 
-    def can_move_to_square(self, board, col, row):
-        if not super().can_move_to_square(board, col, row):
+    def can_see_square(self, board, col, row):
+        if not super().can_see_square(board, col, row):
             return False
         if self.col != col and self.row != row:
             return False
@@ -160,7 +166,7 @@ class Rook(Piece):
             for n in range(self.col+step, col, step):
                 if board.has_piece(n, row):
                     return False
-        return super().king_not_in_check(board, col, row)
+        return True
 
 
 class Knight(Piece):
@@ -174,15 +180,15 @@ class Knight(Piece):
         self.row = row
         self.selected = False
     
-    def can_move_to_square(self, board, col, row):
-        if not super().can_move_to_square(board, col, row):
+    def can_see_square(self, board, col, row):
+        if not super().can_see_square(board, col, row):
             return False
         # test if square is one of 8 possible squares a knight can jump to manually
         if ((row == self.row + 2 and (col == self.col + 1 or col == self.col - 1)) or
             (row == self.row - 2 and (col == self.col + 1 or col == self.col - 1)) or
             (col == self.col + 2 and (row == self.row + 1 or row == self.row - 1)) or
             (col == self.col - 2 and (row == self.row + 1 or row == self.row - 1))):
-            return super().king_not_in_check(board, col, row)
+            return True
         return False
 
 
@@ -197,8 +203,8 @@ class Bishop(Piece):
         self.row = row
         self.selected = False
     
-    def can_move_to_square(self, board, col, row):
-        if not super().can_move_to_square(board, col, row):
+    def can_see_square(self, board, col, row):
+        if not super().can_see_square(board, col, row):
             return False
         # make sure it is a diagonal move i.e. movement in col = movement in row
         col_dist = abs(col - self.col)
@@ -214,7 +220,7 @@ class Bishop(Piece):
             if board.has_piece(c, r):
                     return False
         
-        return super().king_not_in_check(board, col, row)
+        return True
 
 
 class Queen(Piece):
@@ -228,14 +234,14 @@ class Queen(Piece):
         self.row = row
         self.selected = False
     
-    def can_move_to_square(self, board, col, row):
-        if not super().can_move_to_square(board, col, row):
+    def can_see_square(self, board, col, row):
+        if not super().can_see_square(board, col, row):
             return False
         # if a bishop or a rook can move there, the queen can move there
         B = Bishop(self.color, self.col, self.row)
         R = Rook(self.color, self.col, self.row)
-        if B.can_move_to_square(board, col, row) or R.can_move_to_square(board, col, row):
-            return super().king_not_in_check(board, col, row)
+        if B.can_see_square(board, col, row) or R.can_see_square(board, col, row):
+            return True
 
 
 class King(Piece):
@@ -261,12 +267,12 @@ class King(Piece):
             q_rook.move(board, col+1, row)
         return super().move(board, col, row)
 
-    def can_move_to_square(self, board, col, row):
-        if not super().can_move_to_square(board, col, row):
+    def can_see_square(self, board, col, row):
+        if not super().can_see_square(board, col, row):
             return False
         # 1 step in any direction
         if abs(col-self.col) <= 1 and abs(row-self.row) <= 1:
-            return super().king_not_in_check(board, col, row)
+            return True
         # TO-DO: castling
         if not self.has_moved and self.row == row:
             # kingside castling
@@ -277,7 +283,7 @@ class King(Piece):
                 if board.has_piece(self.col+1, row) or board.has_piece(self.col+2, row):
                     return False
                 else:
-                    return super().king_not_in_check(board, col, row)
+                    return True
             # queenside castling
             elif col == self.col - 2:
                 q_rook = board.get_piece(0, row)
@@ -286,12 +292,23 @@ class King(Piece):
                 if board.has_piece(self.col-1, row) or board.has_piece(self.col-2, row):
                     return False
                 else:
-                    return super().king_not_in_check(board, col, row)
+                    return True
         return False
     
     def is_in_check(self, board):
         pieces = board.white_pieces if self.color == BLACK else board.black_pieces
         for piece in pieces:
-            if piece.can_move_to_square(board, self.col, self.row):
+            if piece.can_see_square(board, self.col, self.row):
                 return True
         return False
+    
+    def is_in_checkmate(self, board):
+        if not self.is_in_check(board):
+            return False
+        pieces = board.white_pieces if self.color == WHITE else board.black_pieces
+        for piece in pieces:
+            for c in range(8):
+                for r in range(8):
+                    if piece.can_move_to_square(board, c, r):
+                        return False
+        return True

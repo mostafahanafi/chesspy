@@ -84,8 +84,11 @@ class Board:
                 # display pieces
                 piece = self.board[row][col]
                 if piece is not None:
-                    if isinstance(piece, King) and piece.is_in_check(self):
-                        c = [255,170,170]
+                    if isinstance(piece, King):
+                        if piece.is_in_checkmate(self):
+                            c = [170,255,170]
+                        elif piece.is_in_check(self):
+                            c = [255,170,170]
                         rect = [col*self.spacing, row*self.spacing, self.spacing, self.spacing]
                         pygame.draw.rect(screen, c, rect)
                     piece.display(self, screen)
