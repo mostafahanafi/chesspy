@@ -28,3 +28,15 @@ class AI:
                 total += mult # piece near center of board   
         
         return total
+    
+    def choose_best_move(self, board: Board):
+        moves = board.get_possible_moves()
+        best_move = (None, 0)
+        for move in moves:
+            test_board = copy.deepcopy(board)
+            piece = test_board.get_piece(move[0].col, move[0].row)
+            piece.move(test_board, move[1], move[2])
+            score = self.score(test_board)
+            if score > best_move[1]:
+                best_move = (move, score)
+        return best_move
