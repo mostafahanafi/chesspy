@@ -15,6 +15,9 @@ class Board:
         self.black_AI = True
         self.turn = WHITE
     
+    def change_turn(self):
+        self.turn = WHITE if self.turn == BLACK else BLACK
+
     def create_piece(self, Piece_class, color, col, row):
         piece = Piece_class(color, col, row)
         self.add_piece(piece)

@@ -1,6 +1,7 @@
 from Board import Board
 from Piece import *
 import copy
+import random
 
 class AI:
     def __init__(self, color) -> None:
@@ -37,15 +38,40 @@ class AI:
         score = self.score_board(test_board)
         return score
 
-    def choose_best_move(self, board: Board):
-        moves = board.get_possible_moves()
-        best_move = (moves[0], self.score_move(board, moves[0]))
-        for move in moves:
-            score = self.score_move(board, move)
-            if self.color == WHITE:
+    def minimax(self, board, depth):
+        if board.turn == WHITE:
+            best_move = (None, float("-inf"))
+            for move in board.get_possible_moves():
+                score = self.minimax_move(board, move, depth)
                 if score > best_move[1]:
                     best_move = (move, score)
-            else:
+            return best_move
+        else:
+            best_move = (None, float("inf"))
+            for move in board.get_possible_moves():
+                score = self.minimax_move(board, move, depth)
                 if score < best_move[1]:
                     best_move = (move, score)
-        return best_move
+            return best_move
+
+    def minimax_move(self, board, move, depth):
+        test_board = copy.deepcopy(board)
+        test_piece = test_board.get_piece(move[0].col, move[0].row)
+        test_piece.move(test_board, move[1], move[2])
+        test_board.change_turn()
+        depth -= 1
+
+        if depth == 0:
+            return self.score_board(test_board)
+        else:
+            next_moves = test_board.get_possible_moves()
+            if test_board.turn == WHITE:
+                return max(self.minimax_move(test_board, next_move, depth) \
+                    for next_move in next_moves)
+            else:
+                return min(self.minimax_move(test_board, next_move, depth) \
+                    for next_move in next_moves)
+
+class RandomAI(AI):
+    def minimax(self, board, depth):
+        return (random.choice(board.get_possible_moves()), random.random())
