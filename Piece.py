@@ -43,38 +43,23 @@ class Piece:
             img_rect.y = spacing * self.row
         screen.blit(img, img_rect)
 
-    # TO DO - false if in check, either still in check or puts into check
-    def can_see_square(self, board, col, row):
-        # if somehow out of bounds, return False
-        if row < 0 or row >= 8 or col < 0 or col >= 8:
-            return False
-        # if same square, return False
-        if row == self.row and col == self.col:
-            return False
-        # if occupied by another piece of the same color, return False
-        if board.has_piece(col, row):
-            piece = board.get_piece(col, row)
-            if self.color == piece.color:
-                return False
-        # otherwise, return True
-        return True
-    
     def can_move_to_square(self, board, col, row):
-        if self.can_see_square(board, col, row):
-            return self.king_not_in_check(board, col, row)
-        return False
+        return (col,row) in self.validate_moves(board, self.get_legal_moves(board))
     
-    def king_not_in_check(self, board, col, row):
-        # if king is (still) in check after the move, return False
-        next_board = copy.deepcopy(board)
-        next_pieces = next_board.white_pieces if self.color == WHITE else next_board.black_pieces
-        next_self = next_board.get_piece(self.col, self.row)
-        next_self.move(next_board, col, row)
-        for piece in next_pieces:
-            if isinstance(piece, King) and piece.is_in_check(next_board):
-                return False
-        return True
+    def validate_moves(self, board, moves):
+        # check that moves do not put (or keep) king in check
+        for move in moves.copy():
+            next_board = copy.deepcopy(board)
+            next_pieces = next_board.white_pieces if self.color == WHITE else next_board.black_pieces
+            next_piece = next_board.get_piece(self.col, self.row)
+            next_piece.move(next_board, move[0], move[1])
+            for k in next_pieces:
+                if isinstance(k, King) and k.is_in_check(next_board):
+                    moves.remove(move)
+        return moves
 
+    def get_legal_moves(self, board):
+        return []
 
 class Pawn(Piece):
     def __init__(self, color, col, row):
@@ -105,32 +90,37 @@ class Pawn(Piece):
                     if isinstance(piece, Pawn) and piece.en_passant:
                         piece.delete(board)
             return super().move(board, col, row)
-
-    def can_see_square(self, board, col, row):
-        if not super().can_see_square(board, col, row):
-            return False
-        # set step/direction and home row for different colors
+    
+    def get_legal_moves(self, board):
+        moves = []
         step = -1 if self.color == WHITE else 1
         home_row = 6 if self.color == WHITE else 1
-        # basic movement (1 step, 2 if on home row)
-        if col == self.col and not board.has_piece(col, row):
-            if row == self.row + step:
-                return True
-            elif self.row == home_row and row == self.row + 2*step and not board.has_piece(self.col,self.row+step):
-                return True
-        # capturing
-        elif (col == self.col+1 or col == self.col-1) and row == self.row + step:
-            if board.has_piece(col, row):
-                piece = board.get_piece(col, row)
-                if self.color != piece.color:
-                    return True
-            # en passant
-            elif board.has_piece(col, self.row):
-                piece = board.get_piece(col, self.row)
-                if isinstance(piece, Pawn) and piece.en_passant:
-                    return True
-
-        return False
+        # one step forward
+        if not board.has_piece(self.col, self.row+step):
+            moves.append( (self.col, self.row+step) )
+        # if hasn't moved, two steps forward
+            if self.row == home_row and not board.has_piece(self.col, self.row+2*step):
+                moves.append( (self.col, self.row+2*step) )
+        # if opponent piece diagonal to it, diagonal move
+        if board.has_piece(self.col-1, self.row+step):
+            piece = board.get_piece(self.col-1, self.row+step)
+            if self.color != piece.color:
+                moves.append( (self.col-1, self.row+step) )
+        if board.has_piece(self.col+1, self.row+step):
+            piece = board.get_piece(self.col+1, self.row+step)
+            if self.color != piece.color:
+                moves.append( (self.col+1, self.row+step) )
+        # if en passant pawn adjacent, diagonal move
+        if board.has_piece(self.col-1, self.row+step):
+            piece = board.has_piece(self.col-1, self.row+step)
+            if isinstance(piece, Pawn) and piece.en_passant:
+                moves.append( (self.col-1, self.row+step) )
+        if board.has_piece(self.col+1, self.row+step):
+            piece = board.has_piece(self.col+1, self.row+step)
+            if isinstance(piece, Pawn) and piece.en_passant:
+                moves.append( (self.col+1, self.row+step) )
+        # return move list
+        return moves
 
 
 class Rook(Piece):
@@ -149,24 +139,54 @@ class Rook(Piece):
         self.has_moved = True
         return super().move(board, col, row)
 
-    def can_see_square(self, board, col, row):
-        if not super().can_see_square(board, col, row):
-            return False
-        if self.col != col and self.row != row:
-            return False
-        # moving along same column
-        if self.col == col:
-            step = 1 if row > self.row else -1
-            for n in range(self.row+step, row, step):
-                if board.has_piece(col, n):
-                    return False
-        # moving along same row
-        if self.row == row:
-            step = 1 if col > self.col else -1
-            for n in range(self.col+step, col, step):
-                if board.has_piece(n, row):
-                    return False
-        return True
+    def get_legal_moves(self, board):
+        moves = []
+        # check left until hitting end of board or piece
+        c = self.col-1
+        while c >= 0:
+            if board.has_piece(c, self.row):
+                piece = board.get_piece(c, self.row)
+                if piece.color != self.color:
+                    moves.append( (c, self.row) )
+                break
+            else:
+                moves.append( (c, self.row) )
+                c -= 1
+        # check right
+        c = self.col+1
+        while c < 8:
+            if board.has_piece(c, self.row):
+                piece = board.get_piece(c, self.row)
+                if piece.color != self.color:
+                    moves.append( (c, self.row) )
+                break
+            else:
+                moves.append( (c, self.row) )
+                c += 1
+        # check up
+        r = self.row-1
+        while r >= 0:
+            if board.has_piece(self.col, r):
+                piece = board.get_piece(self.col, r)
+                if piece.color != self.color:
+                    moves.append( (self.col, r) )
+                break
+            else:
+                moves.append( (self.col, r) )
+                r -= 1
+        # check down
+        r = self.row+1
+        while r < 8:
+            if board.has_piece(self.col, r):
+                piece = board.get_piece(self.col, r)
+                if piece.color != self.color:
+                    moves.append( (self.col, r) )
+                break
+            else:
+                moves.append( (self.col, r) )
+                r += 1
+        # return move list
+        return moves
 
 
 class Knight(Piece):
@@ -180,16 +200,24 @@ class Knight(Piece):
         self.row = row
         self.selected = False
     
-    def can_see_square(self, board, col, row):
-        if not super().can_see_square(board, col, row):
-            return False
-        # test if square is one of 8 possible squares a knight can jump to manually
-        if ((row == self.row + 2 and (col == self.col + 1 or col == self.col - 1)) or
-            (row == self.row - 2 and (col == self.col + 1 or col == self.col - 1)) or
-            (col == self.col + 2 and (row == self.row + 1 or row == self.row - 1)) or
-            (col == self.col - 2 and (row == self.row + 1 or row == self.row - 1))):
-            return True
-        return False
+    def get_legal_moves(self, board):
+        moves = []
+        moves.append( (self.col+1, self.row+2) )
+        moves.append( (self.col-1, self.row+2) )
+        moves.append( (self.col+1, self.row-2) )
+        moves.append( (self.col-1, self.row-2) )
+        moves.append( (self.col+2, self.row+1) )
+        moves.append( (self.col+2, self.row-1) )
+        moves.append( (self.col-2, self.row+1) )
+        moves.append( (self.col-2, self.row-1) )
+        for move in moves.copy():
+            if move[0] < 0 or move[0] >= 8 or move[1] < 0 or move[1] >= 8:
+                moves.remove(move)
+            elif board.has_piece(move[0], move[1]):
+                piece = board.get_piece(move[0], move[1])
+                if piece.color == self.color:
+                    moves.remove(move)
+        return moves
 
 
 class Bishop(Piece):
@@ -203,24 +231,62 @@ class Bishop(Piece):
         self.row = row
         self.selected = False
     
-    def can_see_square(self, board, col, row):
-        if not super().can_see_square(board, col, row):
-            return False
-        # make sure it is a diagonal move i.e. movement in col = movement in row
-        col_dist = abs(col - self.col)
-        row_dist = abs(row - self.row)
-        if row_dist != col_dist:
-            return False
-
-        col_step = 1 if col > self.col else -1
-        row_step = 1 if row > self.row else -1
-        for i in range(1, row_dist): 
-            c = self.col + i*col_step
-            r = self.row + i*row_step
+    def get_legal_moves(self, board):
+        moves = []
+        # check up&left diagonal until hitting end of board or piece
+        c = self.col-1
+        r = self.row-1
+        while c >= 0 and r >= 0:
             if board.has_piece(c, r):
-                    return False
-        
-        return True
+                piece = board.get_piece(c, r)
+                if piece.color != self.color:
+                    moves.append( (c, r) )
+                break
+            else:
+                moves.append( (c, r) )
+                c -= 1
+                r -= 1
+        # check down&right
+        c = self.col+1
+        r = self.row+1
+        while c < 8 and r < 8:
+            if board.has_piece(c, r):
+                piece = board.get_piece(c, r)
+                if piece.color != self.color:
+                    moves.append( (c, r) )
+                break
+            else:
+                moves.append( (c, r) )
+                c += 1
+                r += 1
+        # check up&right
+        c = self.col+1
+        r = self.row-1
+        while r >= 0 and c < 8:
+            if board.has_piece(c, r):
+                piece = board.get_piece(c, r)
+                if piece.color != self.color:
+                    moves.append( (c, r) )
+                break
+            else:
+                moves.append( (c, r) )
+                c += 1
+                r -= 1
+        # check down&left
+        c = self.col-1
+        r = self.row+1
+        while r < 8 and c >= 0:
+            if board.has_piece(c, r):
+                piece = board.get_piece(c, r)
+                if piece.color != self.color:
+                    moves.append( (c, r) )
+                break
+            else:
+                moves.append( (c, r) )
+                c -= 1
+                r += 1
+        # return move list
+        return moves
 
 
 class Queen(Piece):
@@ -233,15 +299,11 @@ class Queen(Piece):
         self.col = col
         self.row = row
         self.selected = False
-    
-    def can_see_square(self, board, col, row):
-        if not super().can_see_square(board, col, row):
-            return False
-        # if a bishop or a rook can move there, the queen can move there
-        B = Bishop(self.color, self.col, self.row)
-        R = Rook(self.color, self.col, self.row)
-        if B.can_see_square(board, col, row) or R.can_see_square(board, col, row):
-            return True
+
+    def get_legal_moves(self, board):
+        B_moves = Bishop(self.color, self.col, self.row).get_legal_moves(board)
+        R_moves = Rook(self.color, self.col, self.row).get_legal_moves(board)
+        return B_moves + R_moves
 
 
 class King(Piece):
@@ -259,48 +321,56 @@ class King(Piece):
     def move(self, board, col, row):
         self.has_moved = True
         # if castling, also move the rook
-        if col - self.col == 2:
+        if col - self.col == 2 and row == self.row:
             k_rook = board.get_piece(7, row)
             k_rook.move(board, col-1, row)
-        elif self.col - col == 2:
+        elif self.col - col == 2 and row == self.row:
+            print(self.col, self.row, col, row)
             q_rook = board.get_piece(0, row)
             q_rook.move(board, col+1, row)
         return super().move(board, col, row)
-
-    def can_see_square(self, board, col, row):
-        if not super().can_see_square(board, col, row):
-            return False
-        # 1 step in any direction
-        if abs(col-self.col) <= 1 and abs(row-self.row) <= 1:
-            return True
-        # TO-DO: castling
-        if not self.has_moved and self.row == row:
-            # kingside castling
-            if col == self.col + 2:
-                if board.has_piece(7, row) and isinstance(board.get_piece(7, row), Rook):
-                    k_rook = board.get_piece(7, row)
-                    if k_rook.has_moved:
-                        return False
-                    if board.has_piece(self.col+1, row) or board.has_piece(self.col+2, row):
-                        return False
-                    else:
-                        return True
-            # queenside castling
-            elif col == self.col - 2:
-                if board.has_piece(0, row) and isinstance(board.get_piece(0, row), Rook):
-                    q_rook = board.get_piece(0, row)
-                    if q_rook.has_moved:
-                        return False
-                    if board.has_piece(self.col-1, row) or board.has_piece(self.col-2, row):
-                        return False
-                    else:
-                        return True
-        return False
     
+    def get_legal_moves(self, board):
+        moves = []
+        # 1 move around the king
+        for c in [self.col-1,self.col,self.col+1]:
+            for r in [self.row-1,self.row,self.row+1]:
+                moves.append( (c,r) )
+        moves.remove( (self.col, self.row) )
+        for move in moves.copy():
+            if move[0] < 0 or move[0] >= 8 or move[1] < 0 or move[1] >= 8:
+                moves.remove(move)
+            elif board.has_piece(move[0], move[1]):
+                piece = board.get_piece(move[0], move[1])
+                if piece.color == self.color:
+                    moves.remove(move)
+        # castling
+        if not self.has_moved:
+            # kingside castling
+            if board.has_piece(7, self.row):
+                k_rook = board.get_piece(7, self.row)
+                if isinstance(k_rook, Rook):
+                    k_rook = board.get_piece(7, self.row)
+                    if not k_rook.has_moved:
+                        if not (board.has_piece(self.col+1, self.row) or board.has_piece(self.col+2, self.row)):
+                            moves.append( (self.col+2, self.row) )
+            # queenside castling
+            if board.has_piece(0, self.row):
+                q_rook = board.get_piece(0, self.row)
+                if isinstance(q_rook, Rook):
+                    q_rook = board.get_piece(0, self.row)
+                    if not q_rook.has_moved:
+                        if not (board.has_piece(self.col-1, self.row) or 
+                        board.has_piece(self.col-2, self.row) or
+                        board.has_piece(self.col-3, self.row)):
+                            moves.append( (self.col-2, self.row) )
+        return moves
+
     def is_in_check(self, board):
         pieces = board.white_pieces if self.color == BLACK else board.black_pieces
         for piece in pieces:
-            if piece.can_see_square(board, self.col, self.row):
+            moves = piece.get_legal_moves(board)
+            if (self.col, self.row) in moves:
                 return True
         return False
     
@@ -309,8 +379,7 @@ class King(Piece):
             return False
         pieces = board.white_pieces if self.color == WHITE else board.black_pieces
         for piece in pieces:
-            for c in range(8):
-                for r in range(8):
-                    if piece.can_move_to_square(board, c, r):
-                        return False
+            moves = piece.get_legal_moves(board)
+            if len(moves) > 0:
+                return False
         return True

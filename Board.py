@@ -51,6 +51,8 @@ class Board:
         self.create_piece(King,1,4,0)
 
     def has_piece(self, col, row):
+        if col < 0 or col >= 8 or row < 0 or row >= 8:
+            return False
         return self.board[row][col] is not None
     
     def get_piece(self, col, row):
@@ -63,6 +65,10 @@ class Board:
             if piece.selected:
                 selected_piece = piece
                 break
+        # moves selected piece can make
+        if selected_piece is not None:
+            moves = selected_piece.get_legal_moves(self)
+            valid_moves = selected_piece.validate_moves(self, moves)
         # draw chessboard
         for row in range(8):
             for col in range(8):
@@ -72,20 +78,21 @@ class Board:
                     c = [117,150,86]
                 rect = [col*self.spacing, row*self.spacing, self.spacing, self.spacing]
                 pygame.draw.rect(screen, c, rect)
-                # highlight square of selected piece
-                if selected_piece is not None and selected_piece.can_move_to_square(self, col, row):
+                
+                if selected_piece is not None:
                     # if selected piece can move, highlight possible moves
-                    if self.has_piece(col,row):
-                        pygame.draw.circle(screen,
-                                    (100,100,100), 
-                                    [(col+.5)*self.spacing, (row+.5)*self.spacing],
-                                    self.spacing/2,
-                                    width=int(self.spacing/20))
-                    else:
-                        pygame.draw.circle(screen,
-                                    (100,100,100), 
-                                    [(col+.5)*self.spacing, (row+.5)*self.spacing],
-                                    self.spacing/8)
+                    if (col, row) in valid_moves:
+                        if self.has_piece(col,row):
+                            pygame.draw.circle(screen,
+                                        (100,100,100), 
+                                        [(col+.5)*self.spacing, (row+.5)*self.spacing],
+                                        self.spacing/2,
+                                        width=int(self.spacing/20))
+                        else:
+                            pygame.draw.circle(screen,
+                                        (100,100,100), 
+                                        [(col+.5)*self.spacing, (row+.5)*self.spacing],
+                                        self.spacing/8)
                 # display pieces
                 piece = self.board[row][col]
                 if piece is not None:
@@ -108,6 +115,7 @@ class Board:
             rect = [col*self.spacing, row*self.spacing, self.spacing, self.spacing]
             pygame.draw.rect(screen, c, rect)
             selected_piece.display(self, screen)
+        pygame.display.flip()
 
     def mouse_clicked(self, pos):
         col, row = int(pos[0]/self.spacing), int(pos[1]/self.spacing)
@@ -136,10 +144,9 @@ class Board:
     
     def get_possible_moves(self):
         pieces = self.white_pieces if self.turn == WHITE else self.black_pieces
-        moves = []
+        valid_moves = []
         for piece in pieces:
-            for c in range(8):
-                for r in range(8):
-                    if piece.can_move_to_square(self, c, r):
-                        moves.append( (piece,c,r) )
-        return moves
+            moves = piece.get_legal_moves(self)
+            for move in piece.validate_moves(self, moves):
+                valid_moves.append( (piece,move[0],move[1]) )
+        return valid_moves
