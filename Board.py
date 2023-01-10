@@ -1,18 +1,19 @@
 import pygame
 from Piece import *
+from Main import PLAYER, AI
 
 WHITE = 0
 BLACK = 1
 
 class Board:
-    def __init__(self, size=800):
+    def __init__(self, white, black, size=800):
         self.board = [[None for _ in range(8)] for _ in range(8)]
         self.white_pieces = []
         self.black_pieces = []
         self.size = size
         self.spacing = self.size/8
-        self.white_AI = False
-        self.black_AI = True
+        self.white_AI = (white == AI)
+        self.black_AI = (black == AI)
         self.turn = WHITE
     
     def change_turn(self):
