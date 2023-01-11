@@ -137,7 +137,7 @@ class Board:
             print("ERROR: MORE THAN ONE SELECTED. DEBUG NECESSARY")
         if selected_piece.can_move_to_square(self, col, row):
             selected_piece.move(self, col, row)
-            self.turn = WHITE if self.turn == BLACK else BLACK
+            self.change_turn()
             selected_piece.selected = False
             return True
         selected_piece.selected = False
