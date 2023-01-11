@@ -1,4 +1,4 @@
-# &#9823; chesspy &#9817;
+# chesspy &#9817;
 
 A chess program written in Python without the use of any external chess libraries, including a primitive functional AI.
 
