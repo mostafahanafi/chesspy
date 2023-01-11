@@ -1,9 +1,10 @@
 import pygame
 from Piece import *
-from Main import PLAYER, AI
 
 WHITE = 0
 BLACK = 1
+PLAYER = 0
+AI = 1
 
 class Board:
     def __init__(self, white, black, size=800):

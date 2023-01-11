@@ -1,11 +1,8 @@
 import pygame
 from Piece import *
-from Board import Board
+from Board import Board, PLAYER, AI
 from Controller import Controller
 
-# constants to be assigned easily later
-PLAYER = 0
-AI = 1
 
 # customizable settings
 SIZE = 800
