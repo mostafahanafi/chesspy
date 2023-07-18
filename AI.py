@@ -82,6 +82,7 @@ class AI:
                 test_board.change_turn()
                 score = self.minimax(test_board, depth-1)
                 moves.append((move, score))
+                print(move, score)
             moves.sort(key=lambda x: x[1], reverse=True)
             return moves[0]
         else:

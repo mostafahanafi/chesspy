@@ -54,7 +54,7 @@ class Controller:
         screen.blit(text_background, textbox)
         screen.blit(text, textbox)
         pygame.display.flip()
-        pygame.time.wait(10000)
+        pygame.time.wait(3000)
 
     def game_loop(self):
         screen = pygame.display.set_mode([self.board.size,self.board.size])
@@ -63,12 +63,13 @@ class Controller:
 
         while not white_king.is_in_checkmate(self.board):
             # White's turn
-            if self.board.white_AI:
-                self.ai_turn(WHITE, screen, depth=3)
-            else:
-                self.player_turn(screen)
+            if self.board.turn == WHITE:
+                if self.board.white_AI:
+                    self.ai_turn(WHITE, screen, depth=3)
+                else:
+                    self.player_turn(screen)
             # Black's turn
-            if not black_king.is_in_checkmate(self.board):
+            elif not black_king.is_in_checkmate(self.board):
                 if self.board.black_AI:
                     self.ai_turn(BLACK, screen, depth=3)
                 else:

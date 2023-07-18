@@ -152,3 +152,94 @@ class Board:
             for move in piece.validate_moves(self, moves):
                 valid_moves.append( (piece,move[0],move[1]) )
         return valid_moves
+    
+    def from_FEN(self, fen_str):
+        self.board = [[None for _ in range(8)] for _ in range(8)]
+        fen_parts = fen_str.split(" ")
+
+        # 1. Piece placement
+        piece_placements = fen_parts[0]
+        for row, row_placement in enumerate(piece_placements.split("/")):
+            col = 0
+            for piece_placement in row_placement:
+                if piece_placement.isnumeric():
+                    col += int(piece_placement)
+                else:
+                    color = BLACK if piece_placement.islower() else WHITE
+                    piece_placement = piece_placement.lower()
+                    match piece_placement:
+                        case "r":
+                            self.create_piece(Rook, color, col, row)
+                        case "n":
+                            self.create_piece(Knight, color, col, row)
+                        case "b":
+                            self.create_piece(Bishop, color, col, row)
+                        case "k":
+                            self.create_piece(King, color, col, row)
+                        case "q":
+                            self.create_piece(Queen, color, col, row)
+                        case "p":
+                            self.create_piece(Pawn, color, col, row)
+                        case _:
+                            raise ValueError
+                    col += 1
+
+        # 2. Active color (turn)
+        turn = fen_parts[1]
+        self.turn = WHITE if turn == 'w' else BLACK
+
+        # 3. Castling rights
+        castling_rights = fen_parts[2]
+        white_king = [piece for piece in self.white_pieces if isinstance(piece, King)][0]
+        black_king = [piece for piece in self.white_pieces if isinstance(piece, King)][0]
+        white_rooks = [piece for piece in self.white_pieces if isinstance(piece, Rook)]
+        black_rooks = [piece for piece in self.black_pieces if isinstance(piece, Rook)]
+        
+        if castling_rights == '-':
+            white_king.has_moved = True
+            black_king.has_moved = True
+        else:
+            if len(white_rooks) == 2:
+                if 'K' in castling_rights and 'Q' not in castling_rights:
+                    if white_rooks[0].col == 7 and white_rooks[0].row == 7:
+                        white_rooks[1].has_moved = True
+                    else:
+                        white_rooks[0].has_moved = True
+                elif 'Q' in castling_rights and 'K' not in castling_rights:
+                    if white_rooks[0].col == 0 and white_rooks[0].row == 7:
+                        white_rooks[1].has_moved = True
+                    else:
+                        white_rooks[0].has_moved = True
+            
+            if len(black_rooks) == 2:
+                if 'k' in castling_rights and 'q' not in castling_rights:
+                    if black_rooks[0].col == 7 and black_rooks[0].row == 0:
+                        black_rooks[1].has_moved = True
+                    else:
+                        black_rooks[0].has_moved = True
+                if 'q' in castling_rights and 'k' not in castling_rights:
+                    if black_rooks[0].col == 0 and black_rooks[0].row == 0:
+                        black_rooks[1].has_moved = True
+                    else:
+                        black_rooks[0].has_moved = True
+        
+        # 4. En passant targets
+        en_passant_square = fen_parts[3]
+        if en_passant_square != "-":
+            file = en_passant_square[0]
+            rank = int(en_passant_square[1])
+
+            row = 8 - rank
+            col = 'abcdefgh'.index(file)
+
+            if row == 2:
+                pawn = self.get_piece(col, row+1)
+            elif row == 5:
+                pawn = self.get_piece(col, row-1)
+            pawn.en_passant = True
+        
+        # 5. Halfmove clock
+        # TODO:
+
+        # 6. Fullmove number
+        # TODO:
