@@ -111,13 +111,13 @@ class Pawn(Piece):
             if self.color != piece.color:
                 moves.append( (self.col+1, self.row+step) )
         # if en passant pawn adjacent, diagonal move
-        if board.has_piece(self.col-1, self.row+step):
-            piece = board.has_piece(self.col-1, self.row+step)
-            if isinstance(piece, Pawn) and piece.en_passant:
+        if board.has_piece(self.col-1, self.row):
+            pawn = board.get_piece(self.col-1, self.row)
+            if isinstance(pawn, Pawn) and pawn.en_passant:
                 moves.append( (self.col-1, self.row+step) )
-        if board.has_piece(self.col+1, self.row+step):
-            piece = board.has_piece(self.col+1, self.row+step)
-            if isinstance(piece, Pawn) and piece.en_passant:
+        if board.has_piece(self.col+1, self.row):
+            pawn = board.get_piece(self.col+1, self.row)
+            if isinstance(pawn, Pawn) and pawn.en_passant:
                 moves.append( (self.col+1, self.row+step) )
         # return move list
         return moves
