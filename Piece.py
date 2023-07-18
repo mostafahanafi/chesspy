@@ -345,14 +345,15 @@ class King(Piece):
                 if piece.color == self.color:
                     moves.remove(move)
         # castling
-        if not self.has_moved:
+        if not self.has_moved and not self.is_in_check(board):
             # kingside castling
             if board.has_piece(7, self.row):
                 k_rook = board.get_piece(7, self.row)
                 if isinstance(k_rook, Rook):
                     k_rook = board.get_piece(7, self.row)
                     if not k_rook.has_moved:
-                        if not (board.has_piece(self.col+1, self.row) or board.has_piece(self.col+2, self.row)):
+                        if not (board.has_piece(self.col+1, self.row) or 
+                                board.has_piece(self.col+2, self.row)):
                             moves.append( (self.col+2, self.row) )
             # queenside castling
             if board.has_piece(0, self.row):
@@ -361,17 +362,29 @@ class King(Piece):
                     q_rook = board.get_piece(0, self.row)
                     if not q_rook.has_moved:
                         if not (board.has_piece(self.col-1, self.row) or 
-                        board.has_piece(self.col-2, self.row) or
-                        board.has_piece(self.col-3, self.row)):
+                                board.has_piece(self.col-2, self.row) or
+                                board.has_piece(self.col-3, self.row)):
                             moves.append( (self.col-2, self.row) )
+        return moves
+
+    def validate_moves(self, board, moves):
+        moves = super().validate_moves(board, moves)
+        # check that castling does not go through check
+        if ((self.col+1, self.row) not in moves) and ((self.col+2, self.row) in moves):
+            moves.remove((self.col+2, self.row))
+        if ((self.col-1, self.row) not in moves) and ((self.col-2, self.row) in moves):
+            moves.remove((self.col-2, self.row))
         return moves
 
     def is_in_check(self, board):
         pieces = board.white_pieces if self.color == BLACK else board.black_pieces
         for piece in pieces:
-            moves = piece.get_legal_moves(board)
-            if (self.col, self.row) in moves:
-                return True
+            if isinstance(piece, King):
+                continue
+            else:
+                moves = piece.get_legal_moves(board)
+                if (self.col, self.row) in moves:
+                    return True
         return False
     
     def is_in_checkmate(self, board):
