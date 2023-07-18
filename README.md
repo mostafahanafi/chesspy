@@ -87,7 +87,6 @@ The `Controller` class is how the `Main` file interacts with the game. It contai
 
 ## Known bugs / things to work on next
 
-- Players should not be able to castle out of check
 - Add explicit wins/losses to game, as well as stalemate conditions
 - Add check(mate)s to AI, so that it has a win incentive
 - Refactor code in `AI.py` (duplicated code)
