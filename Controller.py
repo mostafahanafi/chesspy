@@ -44,14 +44,39 @@ class Controller:
         pygame.display.flip()
         self.change_turn()
     
+    def display_winner(self, color, method, screen):
+        font = pygame.font.Font(None, 36)
+        text = font.render(f"{color} wins by {method}!", True, (255,255,255))
+        textbox = text.get_rect(center=(self.board.size/2, self.board.size/2))
+        text_background = pygame.Surface((textbox.width, textbox.height))
+        text_background.fill((0, 0, 255)) 
+
+        screen.blit(text_background, textbox)
+        screen.blit(text, textbox)
+        pygame.display.flip()
+        pygame.time.wait(10000)
+
     def game_loop(self):
         screen = pygame.display.set_mode([self.board.size,self.board.size])
-        while True:
+        white_king = [piece for piece in self.board.white_pieces if isinstance(piece, King)][0]
+        black_king = [piece for piece in self.board.black_pieces if isinstance(piece, King)][0]
+
+        while not white_king.is_in_checkmate(self.board):
+            # White's turn
             if self.board.white_AI:
                 self.ai_turn(WHITE, screen, depth=3)
             else:
                 self.player_turn(screen)
-            if self.board.black_AI:
-                self.ai_turn(BLACK, screen, depth=3)
+            # Black's turn
+            if not black_king.is_in_checkmate(self.board):
+                if self.board.black_AI:
+                    self.ai_turn(BLACK, screen, depth=3)
+                else:
+                    self.player_turn(screen)
             else:
-                self.player_turn(screen)
+                # Black is in checkmate, White WINS!
+                self.display_winner("White", "checkmate", screen)
+                return
+
+        # White is in checkmate, Black WINS!
+        self.display_winner("Black", "checkmate", screen)
