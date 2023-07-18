@@ -54,8 +54,10 @@ class Piece:
             next_piece = next_board.get_piece(self.col, self.row)
             next_piece.move(next_board, move[0], move[1])
             for k in next_pieces:
-                if isinstance(k, King) and k.is_in_check(next_board):
-                    moves.remove(move)
+                if isinstance(k, King):
+                    if k.is_in_check(next_board):
+                        moves.remove(move)
+                    break
         return moves
 
     def get_legal_moves(self, board):
@@ -95,10 +97,10 @@ class Pawn(Piece):
         moves = []
         step = -1 if self.color == WHITE else 1
         home_row = 6 if self.color == WHITE else 1
-        # one step forward
+        # can move one step forward
         if not board.has_piece(self.col, self.row+step):
             moves.append( (self.col, self.row+step) )
-        # if hasn't moved, two steps forward
+        # if hasn't moved yet, two steps forward
             if self.row == home_row and not board.has_piece(self.col, self.row+2*step):
                 moves.append( (self.col, self.row+2*step) )
         # if opponent piece diagonal to it, diagonal move
@@ -345,7 +347,7 @@ class King(Piece):
                 if piece.color == self.color:
                     moves.remove(move)
         # castling
-        if not self.has_moved and not self.is_in_check(board):
+        if not self.has_moved:
             # kingside castling
             if board.has_piece(7, self.row):
                 k_rook = board.get_piece(7, self.row)
@@ -370,11 +372,22 @@ class King(Piece):
     def validate_moves(self, board, moves):
         moves = super().validate_moves(board, moves)
         # check that castling does not go through check
-        if ((self.col+1, self.row) not in moves) and ((self.col+2, self.row) in moves):
+        if ((self.col+2, self.row) in moves) and (self.is_in_check(board) or (self.col+1, self.row) not in moves):
             moves.remove((self.col+2, self.row))
-        if ((self.col-1, self.row) not in moves) and ((self.col-2, self.row) in moves):
+        if ((self.col-2, self.row) in moves) and (self.is_in_check(board) or (self.col-1, self.row) not in moves):
             moves.remove((self.col-2, self.row))
+        # check that king is not adjacent to enemy king after move
+        white_king = [piece for piece in board.white_pieces if isinstance(piece, King)][0]
+        black_king = [piece for piece in board.black_pieces if isinstance(piece, King)][0]
+        enemy_king = white_king if self.color == BLACK else black_king
+        for move in moves.copy():
+            if enemy_king.is_adjacent_to(move[0], move[1]):
+                moves.remove(move)
+            
         return moves
+    
+    def is_adjacent_to(self, col, row):
+        return abs(col - self.col) <= 1 and abs(row - self.row) <= 1
 
     def is_in_check(self, board):
         pieces = board.white_pieces if self.color == BLACK else board.black_pieces
@@ -393,6 +406,8 @@ class King(Piece):
         pieces = board.white_pieces if self.color == WHITE else board.black_pieces
         for piece in pieces:
             moves = piece.get_legal_moves(board)
+            moves = piece.validate_moves(board, moves)
+            print(piece, piece.col, piece.row, moves)
             if len(moves) > 0:
                 return False
         return True
