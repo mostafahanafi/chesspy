@@ -1,18 +1,20 @@
 # chesspy &#9817;
 
-A chess program written in Python without the use of any external chess libraries, including a primitive functional AI.
+A chess program written in Python without the use of any external chess libraries, including a primitive functional AI. The primary purpose of this project is to present a fun challenge rather than to develop a highly advanced chess bot. This README gives a brief overview of how the AI works and the structure of the project.
 
-While other languages are faster (and thus may be more suitable for writing a minimax AI), I chose Python as I simply wanted to set myself a fun challenge of writing a working AI (not create a bot that would take down Stockfish). Seeing as it is a language I am proficient in, it made sense for me to take on this challenge using Python, however I could possibly revisit this using a faster programming language.
+For more information and regular updates on the development of this project, please visit my [website/blog](https://hanafi.dev/2023/07/10/writing-a-chess-ai-from-scratch-in-python-part-1/).
 
-## Examples (to be added)
+## Examples
+
+*to be added*
 
 ## Compilation
 
-Run `Main.py` to start the game.
+To start the game, run `Main.py`.
 
 ## Usage
 
-To set up the game, you can customize settings in `Main.py`. Set `WHITE` and `BLACK` to either `PLAYER` or `AI`, change the `SIZE` of the window if you wish, and then run the `Main.py` file.
+Customize the game settings in `Main.py`. Set `WHITE` and `BLACK` to either `PLAYER` or `AI`, change the `SIZE` of the window if you wish, and then run the `Main.py` file.
 
 To change the depth of the AI, you can set the `depth` parameter in the respective `self.ai_turn()` function in the `Controller.game_loop()` function found in `Controller.py`.
 
@@ -84,11 +86,3 @@ Each type of piece inherits this basic class and has its own `get_legal_moves()`
 ### Controller
 
 The `Controller` class is how the `Main` file interacts with the game. It contains a board, and methods that start and manage the game loop.
-
-## Known bugs / things to work on next
-
-- Add explicit wins/losses to game, as well as stalemate conditions
-- Add check(mate)s to AI, so that it has a win incentive
-- Refactor code in `AI.py` (duplicated code)
-- Find a way to not have to recalculate legal moves for each piece every time array is needed per turn
-- Add opening table to AI
